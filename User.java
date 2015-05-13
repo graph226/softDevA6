@@ -1,5 +1,7 @@
 public class User{
-	public static void{
-		
+	int money;
+
+    boolean send(){
+
 	}
 }
