@@ -13,6 +13,7 @@ public class Minority{
 	}
 
     public static boolean receiver(){
+			//hogehoge
 
     }
 }
