@@ -48,6 +48,7 @@ public class User{
         if(isWon){
             updateMoney(result.substring(1, result.length());
         }
+        return isWon;
     }
 
     int updateMoney(int bet){
