@@ -11,4 +11,8 @@ public class Minority{
 			con++;
 		}
 	}
+
+    public static boolean receiver(){
+
+    }
 }
