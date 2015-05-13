@@ -1,4 +1,4 @@
-public class connection{
+public class Connection{
 	public static void connect{
 		//hogehoge
 	}

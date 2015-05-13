@@ -1,4 +1,4 @@
-public class minority{
+public class Minority{
 	public static void main(String[] args){
 		int pro;
 		int con;
