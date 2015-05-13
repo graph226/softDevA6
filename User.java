@@ -38,6 +38,16 @@ public class User{
         result = connect.receive();
         こんな感じで受け取りたい
         */
+
+        /*
+        受け取る文字列のフォーマットは,
+        "(w | w以外)(掛け金の文字列表現)"
+        と勝手に決めて処理してる
+        */
+        isWon = (result.charAt(0) == 'w') ? true : false;
+        if(isWon){
+            updateMoney(result.substring(1, result.length());
+        }
     }
 
     int updateMoney(int bet){
