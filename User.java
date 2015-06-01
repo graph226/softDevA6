@@ -1,59 +1,127 @@
-import java.util.scanner;
+import java.util.Scanner;
 
+//プレイヤーを表すクラス
 public class User{
-	int money;
-    int bet = 0;
-    Connection connect;
-    Scanner scanner = new Scanner(System.in);
+    private String name;
+    private int money;
+    private int bet = 0;
+    private boolean choice;
+    private Connection connect;
+    Scanner scanner;
 
-    boolean selectChoice(){
+    public User(String name, int money, String host_name){
+        this.name = name;
+        this.money = money;
+        connect = new Connection(host_name);
+        scanner = new Scanner(System.in);
+    }
+
+
+    public String getName(){
+        return name;
+    }
+
+    public int getMoney(){
+        return money;
+    }
+
+    public String receiveQuestion(){
+        String question = null;
+        connect.receiveStr( question );
+
+        return question;
+    }
+
+    //選択と掛け金を入力
+    public void inputChoice(){
         boolean choice;
         String input;
 
         System.out.println("Aなら1,　Bなら0を入力　>");
         input = scanner.next();
-        choice = Integer.parseInt(input) ? true : false;
+        choice = Integer.parseInt(input) == 1 ? true : false;
 
         while(true){
             System.out.println("掛け金を入力　>");
-            bet = scanner.next();
-            if(bet < money){
-                return choice;
+            bet = Integer.parseInt(scanner.next());
+
+            if(bet > money){        //所持金以下を指定するまで繰り返す
+                System.out.println("掛け金は所持金以下にしてください");
             }
-            System.out.println("掛け金は所持金以下にしてください");
-        }
-	}
 
-    boolean sendChoice(boolean choice){
-        /*
-        connect.send(choice, bet);
-        みたいに書けるといいかも
-        */
+            this.choice = choice;
+            return;
+        }
     }
 
-    boolean receiveResult(){
-        String result;
+    //選択をサーバーに送信
+    public void sendChoice(){
+        connect.sendChoice(choice, bet);
+    }
+
+    //サーバーから結果を受信して勝っていたらtrueを返す。
+    public boolean receiveResult(){
+        boolean result = false; //Aが少数派だったらtrueがくる
+        int bet = 0;
+
+        //結果の受け取り
+        connect.receiveChoice(result, bet);
+
+        return result == choice;
+    }
+
+    //金額の更新
+    public void updateMoney(){
+        money += this.bet;
+    }
+
+    //ゲームの終了処理
+    public void endGame(){
+        connect.close();
+        scanner.close();
+    }
+
+    public static void main(){
+        User user;
+        Scanner scanner;
         boolean isWon;
-        /*
-        result = connect.receive();
-        こんな感じで受け取りたい
-        */
 
-        /*
-        受け取る文字列のフォーマットは,
-        "(w | w以外)(掛け金の文字列表現)"
-        と勝手に決めて処理してる
-        */
-        isWon = (result.charAt(0) == 'w') ? true : false;
-        if(isWon){
-            updateMoney(result.substring(1, result.length());
+        //開始処理
+        System.out.println("welcome!");
+        scanner = new Scanner(System.in);
+
+        System.out.println("tell me your name : ");
+        String name = scanner.next();
+
+        System.out.println("input host server  : ");
+        String host_name = scanner.next();
+
+        user = new User(name, 1000, host_name);
+
+        //メインループ
+        while( user.getMoney() > 0 ){
+            System.out.println( user.receiveQuestion() );
+            user.inputChoice();
+            user.sendChoice();
+            isWon = user.receiveResult();
+
+            if( isWon ){
+                System.out.println("you are Minority.");
+                user.updateMoney();
+                System.out.print("you got $" + user.bet + ".");
+            }else{
+                System.out.println("you are Majority.");
+            }
+            System.out.println("remaining money : $" + user.money);
         }
-        return isWon;
+
+        if(user.money > 0){
+            System.out.println("you are survived. you got $" + user.money + ".");
+        }else{
+            System.out.println("Game Over...");
+        }
+
+        scanner.close();
+        user.endGame();
     }
-
-    int updateMoney(int bet){
-        money += bet;
-    }
-
-
 }
