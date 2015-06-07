@@ -43,6 +43,7 @@ public class User{
           //所持金以下を指定するまで繰り返す
             if(bet > money){
                 System.out.println("you can't bet money more than you have.");
+                continue;
             }
 
             this.choice = choice;
