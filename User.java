@@ -34,7 +34,7 @@ public class User{
 
         System.out.println("input \"yes\" or \"no\" > ");
         input = scanner.next();
-        choice = Integer.parseInt(input) == 1 ? true : false;
+        choice = input.equals("yes") ? true : false;
 
         while(true){
             System.out.println("input your bet > ");
