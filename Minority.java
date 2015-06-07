@@ -20,7 +20,7 @@ public class Minority{
 		this.pCount = pCount;
 		betSum = 0;
 		svSocket = null;
-		connect = null;
+		connect = new ArrayList<Connection>();
 	}
 
 	//文字列をクライアント全体に送信
