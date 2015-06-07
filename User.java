@@ -2,70 +2,63 @@ import java.util.Scanner;
 
 //プレイヤーを表すクラス
 public class User{
-    private String name;
-    private int money;
-    private int bet = 0;
-    private boolean choice;
+    private String name;    //プレイヤー名
+    private int money;      //所持金
+    private int bet = 0;    //掛け金。結果の受け取りの際には獲得金額
+    private boolean choice; //Aを選んだらtrue
     private Connection connect;
     Scanner scanner;
 
     public User(String name, int money, String host_name){
         this.name = name;
         this.money = money;
-        connect = new Connection(host_name);
+        connect = new Connection(host_name, name, this);
         scanner = new Scanner(System.in);
     }
 
-
+    //ユーザー名のgetter
     public String getName(){
         return name;
     }
 
+    //所持金のgetter
     public int getMoney(){
         return money;
     }
 
-    public String receiveQuestion(){
-        String question = null;
-        connect.receiveStr( question );
 
-        return question;
-    }
-
-    //選択と掛け金を入力
-    public void inputChoice(){
+    //選択と掛け金を入力する。戻り値は入力内容を送信用のフォーマットに直した文字列。
+    public String inputChoice(){
         boolean choice;
         String input;
 
-        System.out.println("Aなら1,　Bなら0を入力　>");
+        System.out.println("input \"yes\" or \"no\" > ");
         input = scanner.next();
         choice = Integer.parseInt(input) == 1 ? true : false;
 
         while(true){
-            System.out.println("掛け金を入力　>");
+            System.out.println("input your bet > ");
             bet = Integer.parseInt(scanner.next());
 
-            if(bet > money){        //所持金以下を指定するまで繰り返す
-                System.out.println("掛け金は所持金以下にしてください");
+          //所持金以下を指定するまで繰り返す
+            if(bet > money){
+                System.out.println("you can't bet money more than you have.");
             }
 
             this.choice = choice;
-            return;
-        }
-    }
+            money -= bet;
 
-    //選択をサーバーに送信
-    public void sendChoice(){
-        connect.sendChoice(choice, bet);
+            return input + "\n" + bet;
+        }
     }
 
     //サーバーから結果を受信して勝っていたらtrueを返す。
     public boolean receiveResult(){
         boolean result = false; //Aが少数派だったらtrueがくる
-        int bet = 0;
 
         //結果の受け取り
-        connect.receiveChoice(result, bet);
+        result = connect.receiveStr().equals("yes");
+        bet = Integer.parseInt( connect.receiveStr() );
 
         return result == choice;
     }
@@ -81,7 +74,7 @@ public class User{
         scanner.close();
     }
 
-    public static void main(){
+    public static void main(String args[]){
         User user;
         Scanner scanner;
         boolean isWon;
@@ -99,12 +92,17 @@ public class User{
         user = new User(name, 1000, host_name);
 
         //メインループ
-        while( user.getMoney() > 0 ){
-            System.out.println( user.receiveQuestion() );
-            user.inputChoice();
-            user.sendChoice();
+        while( true ){
+            //問題の受け取り
+            System.out.println( user.connect.receiveStr() );
+            //投票処理
+            user.connect.setMode("vote");
+            user.connect.start();
+
+
             isWon = user.receiveResult();
 
+            //勝敗の反映
             if( isWon ){
                 System.out.println("you are Minority.");
                 user.updateMoney();
@@ -113,12 +111,35 @@ public class User{
                 System.out.println("you are Majority.");
             }
             System.out.println("remaining money : $" + user.money);
-        }
 
-        if(user.money > 0){
-            System.out.println("you are survived. you got $" + user.money + ".");
-        }else{
-            System.out.println("Game Over...");
+
+            //他のプレイヤーの状態取得
+            user.connect.setMode("interim");
+            user.connect.start();
+
+            try {
+                user.connect.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            //所持金がなくなったら終了
+            if(user.money <= 0){
+                System.out.println("Game Over...");
+                break;
+            }
+
+            //サーバーからENDが送られてきたら勝利
+            String msg = user.connect.receiveStr();
+
+            if( msg.equals("END") ){
+                System.out.println("you are survived. you got $" + user.money + ".");
+                break;
+            }else{
+                System.out.println(msg);
+            }
+
+
         }
 
         scanner.close();
