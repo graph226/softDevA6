@@ -120,8 +120,7 @@ public class Minority{
 		while(true){
 			//問題文の入力,送信
 			System.out.println("input question : ");
-			server.setQueStr( scanner.nextLine() );
-			server.broadcastStr(server.queStr);
+			server.setQueStr( scanner.next() );
 
 			server.broadcastStr( server.getQueStr() );
 
