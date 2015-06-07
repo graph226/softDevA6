@@ -17,6 +17,7 @@ public class Connection extends Thread{
     String handle;          //クライアントのハンドル名。サーバーなら"server"
     Minority mServer;       //ゲームサーバーのインスタンス。クライアントならnull
     User user;              //接続しているプレイヤーのインスタンス。サーバーならnull。
+    static final int DEFAULT = 0;
     static final int VOTE    = 1 << 0;
     static final int INTERIM = 1 << 1;
     static final int DISCUSS = 1 << 2;
@@ -57,6 +58,18 @@ public class Connection extends Thread{
             e.printStackTrace();
         }
 
+    }
+
+    //コピーコンストラクタのようなもの。コピーしたら古いものは使えなくしておく
+    public Connection(Connection oldConnection){
+        socket   = oldConnection.socket;    oldConnection.socket   = null;
+        in       = oldConnection.in;        oldConnection.in       = null;
+        out      = oldConnection.out;       oldConnection.out      = null;
+        isAlive  = oldConnection.isAlive;   oldConnection.isAlive  = false;
+        modeFlag = oldConnection.modeFlag;  oldConnection.modeFlag = DEFAULT;
+        handle   = oldConnection.handle;    oldConnection.handle   = handle;
+        mServer  = oldConnection.mServer;   oldConnection.mServer  = mServer;
+        user     = oldConnection.user;      oldConnection.user     = user;
     }
 
     public void setMode(String mode){
@@ -151,7 +164,7 @@ public class Connection extends Thread{
                 //全プレイヤーの金額を受け取る
                 int pCount = Integer.parseInt( receiveStr() );
 
-                for(int i = pCount; i == 0; i--){
+                for(int i = pCount; i > 0; i--){
                     System.out.println( receiveStr() );
                 }
             }

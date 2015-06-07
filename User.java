@@ -95,10 +95,15 @@ public class User{
         while( true ){
             //問題の受け取り
             System.out.println( user.connect.receiveStr() );
+
             //投票処理
             user.connect.setMode("vote");
             user.connect.start();
-
+            try {
+                user.connect.join();
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
 
             isWon = user.receiveResult();
 
@@ -114,6 +119,7 @@ public class User{
 
 
             //他のプレイヤーの状態取得
+            user.connect = new Connection(user.connect);
             user.connect.setMode("interim");
             user.connect.start();
 
@@ -139,7 +145,7 @@ public class User{
                 System.out.println(msg);
             }
 
-
+            user.connect = new Connection(user.connect);
         }
 
         scanner.close();

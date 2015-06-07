@@ -142,10 +142,10 @@ public class Minority{
 			//継続判定の開始
 			server.broadcastStr( "" + pCount );
 
-			for(Iterator<Connection> it = server.connect.iterator(); it.hasNext();){
-				Connection c = it.next();
-				c.setMode("interim");
-				c.start();
+			for(int i = 0; i < server.connect.size(); i++){
+				server.connect.set(i, new Connection( server.connect.get(i) ));
+				server.connect.get(i).setMode("interim");
+				server.connect.get(i).start();
 			}
 
 			server.joinALLConnection();
@@ -165,6 +165,13 @@ public class Minority{
 				server.broadcastStr("next turn.");
 			}
 
+			//次のループのための準備
+			for(int i = 0; i < server.connect.size(); i++){
+				server.connect.set(i, new Connection( server.connect.get(i) ));
+			}
+			server.ACount = 0;
+			server.BCount = 0;
+			server.betSum = 0;
 		}
 
 		scanner.close();
