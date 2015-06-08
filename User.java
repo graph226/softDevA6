@@ -92,6 +92,8 @@ public class User{
 
         user = new User(name, 1000, host_name);
 
+        System.out.println("you have $"+ user.money +".");
+
         //メインループ
         while( true ){
             //問題の受け取り

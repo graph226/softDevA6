@@ -111,7 +111,7 @@ public class Minority{
 				e.printStackTrace();
 			}
 			server.connect.add( con );
-			System.out.println(i + " players connected.");
+			System.out.println(i+1 + " players connected.");
 		}
 
 		System.out.println("all connection established.");
