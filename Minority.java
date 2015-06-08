@@ -96,7 +96,7 @@ public class Minority{
 
 		//プレイヤーの人数決定
 		System.out.println("Minority Server");
-		System.out.println("input the number of player : ");
+		System.out.print("input the number of player : ");
 		try{
 			server = new Minority( Integer.parseInt( in.readLine() ) );
 		}catch (IOException e){
@@ -130,7 +130,7 @@ public class Minority{
 		//メインループ
 		while(true){
 			//問題文の入力,送信
-			System.out.println("input question : ");
+			System.out.print("input question : ");
 			try{
 				server.setQueStr( in.readLine() );
 			}catch (IOException e) {

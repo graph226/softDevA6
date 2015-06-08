@@ -34,13 +34,13 @@ public class User{
         boolean choice;
         String input;
 
-        System.out.println("input \"yes\" or \"no\" > ");
+        System.out.print("input \"yes\" or \"no\" > ");
         input = scanner.next();
         choice = input.equals("yes") ? true : false;
 
 
         while(true){
-            System.out.println("input your bet > ");
+            System.out.print("input your bet > ");
 
             try {
                 bet = Integer.parseInt(scanner.next());
@@ -118,10 +118,10 @@ public class User{
         System.out.println("welcome!");
         scanner = new Scanner(System.in);
 
-        System.out.println("tell me your name : ");
+        System.out.print("tell me your name : ");
         String name = scanner.next();
 
-        System.out.println("input host server  : ");
+        System.out.print("input host server  : ");
         String host_name = scanner.next();
 
         user = new User(name, 1000, host_name);
@@ -148,7 +148,7 @@ public class User{
             if( result == WON ){
                 System.out.println("you are Minority.");
                 user.updateMoney();
-                System.out.print("you got $" + user.bet + ".");
+                System.out.println("you got $" + user.bet + ".");
             }else if( result == DRAW){
                 System.out.println("draw.");
                 user.updateMoney();
