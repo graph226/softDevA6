@@ -5,7 +5,7 @@ public class User{
     private String name;    //プレイヤー名
     private int money;      //所持金
     private int bet = 0;    //掛け金。結果の受け取りの際には獲得金額
-    private boolean choice; //Aを選んだらtrue
+    private boolean choice; //yesを選んだらtrue
     private Connection connect;
     private Scanner scanner;
     static final byte WON  = 1 << 0;

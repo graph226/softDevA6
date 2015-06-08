@@ -45,11 +45,9 @@ public class Minority{
 
 	//Aが少数派なら正の数、Bが少数派なら負の数、同数なら0を返す
 	public int judge(){
-		if(ACount < BCount){
-			if(ACount == BCount) return 0;
-			else return 1;
-		}
-		return -1;
+		if( ACount == BCount || ACount == 0 || BCount == 0 ) return 0;
+
+		return ACount < BCount ? 1 : -1;
 	}
 
 	//すべてのコネクションが終了するのを待つ
@@ -149,7 +147,7 @@ public class Minority{
 
 			//投票結果の送信。賞金は勝利人数で山分け
 			int result = server.judge();
-			String resultStr = result > 0 ? "yes\n" : result != 0 ? "no\n" : "same\n";
+			String resultStr = result > 0 ? "yes\n" : result == 0 ? "same\n" : "no\n";
 			int winCount = result > 0 ? server.ACount : server.BCount;
 			if( winCount == 0 ) winCount++;
 			int prize = result > 0 ? server.betSum/winCount : server.betSum/winCount;
