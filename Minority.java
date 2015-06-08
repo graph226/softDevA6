@@ -1,8 +1,9 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Scanner;
 
 public class Minority{
 	private int ACount;			//Aを選んだ
@@ -82,15 +83,17 @@ public class Minority{
     }
 
     public static void main(String[] args){
-		Scanner scanner = new Scanner(System.in);
-		Minority server;
+		BufferedReader in = new BufferedReader( new InputStreamReader(System.in) );
+		Minority server = null;
 
 		//プレイヤーの人数決定
 		System.out.println("Minority Server");
 		System.out.println("input the number of player : ");
-		int pCount = Integer.parseInt( scanner.next() );
-		server = new Minority(pCount);
-
+		try{
+			server = new Minority( Integer.parseInt( in.readLine() ) );
+		}catch (IOException e){
+			e.printStackTrace();
+		}
 		//ServerSocketの作成
 		try {
 			server.svSocket = new ServerSocket(5050);
@@ -102,7 +105,7 @@ public class Minority{
 		System.out.println("connection waiting...");
 
 		//接続してきた順にUserとのConnectionを作る
-		for(int i = 0; i < pCount; i++){
+		for(int i = 0; i < server.pCount; i++){
 			Connection con = null;
 
 			try {
@@ -120,8 +123,11 @@ public class Minority{
 		while(true){
 			//問題文の入力,送信
 			System.out.println("input question : ");
-			server.setQueStr( scanner.next() );
-
+			try{
+				server.setQueStr( in.readLine() );
+			}catch (IOException e) {
+				e.printStackTrace();
+			}
 			server.broadcastStr( server.getQueStr() );
 
 			//投票の開始
@@ -142,7 +148,7 @@ public class Minority{
 			server.broadcastStr( resultStr + prize );
 
 			//継続判定の開始
-			server.broadcastStr( "" + pCount );
+			server.broadcastStr( "" + server.pCount );
 
 			for(int i = 0; i < server.connect.size(); i++){
 				server.connect.set(i, new Connection( server.connect.get(i) ));
@@ -177,6 +183,10 @@ public class Minority{
 			server.betSum = 0;
 		}
 
-		scanner.close();
+		try {
+			in.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
