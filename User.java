@@ -130,21 +130,19 @@ public class User{
                 e.printStackTrace();
             }
 
-            //所持金がなくなったら終了
-            if(user.money <= 0){
-                System.out.println("Game Over...");
-                break;
-            }
-
-            //サーバーからENDが送られてきたら勝利
+            //サーバーからENDが送られてきたら終了処理を開始
             String msg = user.connect.receiveStr();
 
             if( msg.equals("END") ){
-                System.out.println("you are survived. you got $" + user.money + ".");
+                if(user.money <= 0){
+                    System.out.println("Game Over...");
+                }else{
+                    System.out.println("you are survived. you got $" + user.money + ".");
+                }
                 break;
-            }else{
-                System.out.println(msg);
             }
+
+            System.out.println(msg);
 
             user.connect = new Connection(user.connect);
         }
