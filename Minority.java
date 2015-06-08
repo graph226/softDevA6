@@ -28,14 +28,7 @@ public class Minority{
     synchronized public void broadcastStr(String msg){
     	for(Iterator<Connection> it = connect.iterator(); it.hasNext(); ){
     		Connection c = it.next();
-
-    		if(c.isAlive){
-    			c.sendStr(msg);
-    		}else{
-    			c.close();
-    			connect.remove(c);
-    			this.pCount--;
-    		}
+    		c.sendStr(msg);
     	}
     }
 
@@ -50,20 +43,35 @@ public class Minority{
 		betSum += bet;
 	}
 
-	//Aが少数派ならtrueを返す
-	public boolean judge(){
-		return ACount < BCount;
+	//Aが少数派なら正の数、Bが少数派なら負の数、同数なら0を返す
+	public int judge(){
+		if(ACount < BCount){
+			if(ACount == BCount) return 0;
+			else return 1;
+		}
+		return -1;
 	}
 
 	//すべてのコネクションが終了するのを待つ
     public void joinALLConnection(){
-        for(Iterator<Connection> it = connect.iterator(); it.hasNext(); ){
+        for(int i = 0; i < pCount; i++ ){
         	try {
-				it.next().join();
+				connect.get(i).join();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
         }
+    }
+
+    //負けたプレイヤーとの接続を切断する
+    public void cutLosers(){
+    	for(int i = 0; i < pCount; i++){
+    		if( !connect.get(i).isAlive ){
+    			connect.remove(i);
+    			i--;
+    			pCount--;
+    		}
+    	}
     }
 
 
@@ -114,7 +122,7 @@ public class Minority{
 				e.printStackTrace();
 			}
 			server.connect.add( con );
-			System.out.println(i+1 + " players connected.");
+			System.out.println(i + " players connected.");
 		}
 
 		System.out.println("all connection established.");
@@ -140,11 +148,11 @@ public class Minority{
 			server.joinALLConnection();
 
 			//投票結果の送信。賞金は勝利人数で山分け
-			boolean result = server.judge();
-			String resultStr = result ? "yes\n" : "no\n";
-			int winCount = result ? server.ACount : server.BCount;
+			int result = server.judge();
+			String resultStr = result > 0 ? "yes\n" : result != 0 ? "no\n" : "same\n";
+			int winCount = result > 0 ? server.ACount : server.BCount;
 			if( winCount == 0 ) winCount++;
-			int prize = result ? server.betSum/winCount : server.betSum/winCount;
+			int prize = result > 0 ? server.betSum/winCount : server.betSum/winCount;
 			server.broadcastStr( resultStr + prize );
 
 			//継続判定の開始
@@ -158,9 +166,13 @@ public class Minority{
 
 			server.joinALLConnection();
 
+			//脱落したプレイヤーとの接続を切断
+			server.cutLosers();
+
 			//残りプレイヤーが2人以下なら終了処理
 			if(server.pCount <= 2){
 				server.broadcastStr("END");
+
 				//残ったコネクションをすべて閉じる
 				for(int i = 0; i < server.connect.size(); i++){
 					Connection c = server.connect.get(i);

@@ -13,10 +13,10 @@ public class Connection extends Thread{
     private BufferedReader in;
     private PrintWriter out;
     public boolean isAlive;
-    private char modeFlag;  //通信モードの設定
-    String handle;          //クライアントのハンドル名。サーバーなら"server"
-    Minority mServer;       //ゲームサーバーのインスタンス。クライアントならnull
-    User user;              //接続しているプレイヤーのインスタンス。サーバーならnull。
+    private char modeFlag;      //通信モードの設定
+    String handle;              //クライアントのハンドル名。サーバーなら"server"
+    Minority mServer;           //ゲームサーバーのインスタンス。クライアントならnull
+    User user;                  //接続しているプレイヤーのインスタンス。サーバーならnull。
     static final int DEFAULT = 0;
     static final int VOTE    = 1 << 0;
     static final int INTERIM = 1 << 1;
@@ -144,8 +144,8 @@ public class Connection extends Thread{
                     mServer.broadcastStr( handle + " : $" + money );
                 }else{
                     //金額が0以下なら脱落
-                    this.isAlive = false;
                     mServer.broadcastStr( handle + " : DROPPED OUT" );
+                    this.isAlive = false;
                 }
             }
 

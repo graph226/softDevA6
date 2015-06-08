@@ -7,7 +7,9 @@ public class User{
     private int bet = 0;    //掛け金。結果の受け取りの際には獲得金額
     private boolean choice; //Aを選んだらtrue
     private Connection connect;
-    Scanner scanner;
+    private Scanner scanner;
+    static final byte WON  = 1 << 0;
+    static final byte DRAW = 1 << 1;
 
     public User(String name, int money, String host_name){
         this.name = name;
@@ -36,13 +38,25 @@ public class User{
         input = scanner.next();
         choice = input.equals("yes") ? true : false;
 
+
         while(true){
             System.out.println("input your bet > ");
-            bet = Integer.parseInt(scanner.next());
 
-          //所持金以下を指定するまで繰り返す
+            try {
+                bet = Integer.parseInt(scanner.next());
+            } catch (NumberFormatException e) {
+                System.out.println("input number.");
+                continue;
+            }
+
+            //所持金以下を指定するまで繰り返す
             if(bet > money){
                 System.out.println("you can't bet money more than you have.");
+                continue;
+            }
+            //最低でも200は賭けないとだめ
+            if(bet < 200 && money >= 200){
+                System.out.println("you must bet at least $200.");
                 continue;
             }
 
@@ -53,15 +67,35 @@ public class User{
         }
     }
 
-    //サーバーから結果を受信して勝っていたらtrueを返す。
-    public boolean receiveResult(){
-        boolean result = false; //Aが少数派だったらtrueがくる
+    //サーバーから結果を受信して判定結果を返す。
+    public byte receiveResult(){
+        byte result = 0;
+        String judgeStr;
 
         //結果の受け取り
-        result = connect.receiveStr().equals("yes");
-        bet = Integer.parseInt( connect.receiveStr() );
+        judgeStr = connect.receiveStr();
 
-        return result == choice;
+        switch (judgeStr) {
+        case "yes":
+            result |= choice ? WON : 0;
+            bet = Integer.parseInt( connect.receiveStr() );
+            break;
+
+        case "same":
+            result |= DRAW;
+            Integer.parseInt( connect.receiveStr() );   //読み飛ばしておく
+            break;
+
+        case "no":
+            result |= !choice ? WON : 0;
+            bet = Integer.parseInt( connect.receiveStr() );
+            break;
+
+        default:
+            break;
+        }
+
+        return result;
     }
 
     //金額の更新
@@ -78,7 +112,7 @@ public class User{
     public static void main(String args[]){
         User user;
         Scanner scanner;
-        boolean isWon;
+        byte result;
 
         //開始処理
         System.out.println("welcome!");
@@ -108,18 +142,22 @@ public class User{
                 e1.printStackTrace();
             }
 
-            isWon = user.receiveResult();
+            result = user.receiveResult();
 
             //勝敗の反映
-            if( isWon ){
+            if( result == WON ){
                 System.out.println("you are Minority.");
                 user.updateMoney();
                 System.out.print("you got $" + user.bet + ".");
+            }else if( result == DRAW){
+                System.out.println("draw.");
+                user.updateMoney();
+                System.out.println("your bet returned.");
             }else{
                 System.out.println("you are Majority.");
             }
-            System.out.println("remaining money : $" + user.money);
 
+            System.out.println("remaining money : $" + user.money);
 
             //他のプレイヤーの状態取得
             user.connect = new Connection(user.connect);
@@ -132,15 +170,17 @@ public class User{
                 e.printStackTrace();
             }
 
+            //途中敗退の処理
+            if(user.money <= 0){
+                System.out.println("Game Over...");
+                break;
+            }
+
             //サーバーからENDが送られてきたら終了処理を開始
             String msg = user.connect.receiveStr();
 
             if( msg.equals("END") ){
-                if(user.money <= 0){
-                    System.out.println("Game Over...");
-                }else{
-                    System.out.println("you are survived. you got $" + user.money + ".");
-                }
+                System.out.println("you are survived. you got $" + user.money + ".");
                 break;
             }
 
