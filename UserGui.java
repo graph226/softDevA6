@@ -9,8 +9,7 @@ class UserGui extends JFrame {
   }
 
   UserGui(String title){	//コンストラクタ
-		User user;
-		String name, host_name;
+		//User user;
     setTitle(title);
     setBounds(100, 100, 300, 200);
 		//閉じたときの動作
@@ -36,13 +35,17 @@ class UserGui extends JFrame {
 		JButton button1 = new JButton("入力");
 		button1.addActionListener(
 			new ActionListener(){
+				String name;
+				String host_name;
+				User user;
 				public void actionPerformed(ActionEvent event){
-					final String name = text1.getText();
-					final String host_name = text2.getText();
-					final User user = new User(name, 1000, host_name);
+					name = text1.getText();
+					host_name = text2.getText();
+					user = new User(name, 1000, host_name);
 				}
 			}
-			);
+		);
+
 
 
 
