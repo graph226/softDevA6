@@ -12,7 +12,8 @@ public class Minority{
 	private int betSum;			//掛け金の合計
 	private String queStr;		//問題文
 	ServerSocket svSocket;
-	ArrayList<Connection> connect;	//接続の配列
+	ArrayList<Connection> connect;		//接続の配列
+	ArrayList<Connection> chatSpeaker;	//チャット用の送信ソケット
 
 	//コンストラクタ
 	public Minority(int pCount){
@@ -22,13 +23,23 @@ public class Minority{
 		betSum = 0;
 		svSocket = null;
 		connect = new ArrayList<Connection>();
+		chatSpeaker = new ArrayList<Connection>();
 	}
 
 	//文字列をクライアント全体に送信
-    synchronized public void broadcastStr(String msg){
-    	for(Iterator<Connection> it = connect.iterator(); it.hasNext(); ){
-    		Connection c = it.next();
-    		c.sendStr(msg);
+    synchronized public void broadcastStr(String msg, int mode){
+    	//チャット時はListenerに送信
+    	if(mode == Connection.DISCUSS){
+    		for(Iterator<Connection> it = chatSpeaker.iterator(); it.hasNext(); ){
+	    		Connection c = it.next();
+	    		c.sendStr(msg);
+	    	}
+    	}else{
+    		//それ以外は通常のConnectionを利用
+	    	for(Iterator<Connection> it = connect.iterator(); it.hasNext(); ){
+	    		Connection c = it.next();
+	    		c.sendStr(msg);
+	    	}
     	}
     }
 
@@ -66,6 +77,8 @@ public class Minority{
     	for(int i = 0; i < pCount; i++){
     		if( !connect.get(i).isAlive ){
     			connect.remove(i);
+    			chatSpeaker.get(i).sendStr("END");
+    			chatSpeaker.remove(i);
     			i--;
     			pCount--;
     		}
@@ -120,10 +133,27 @@ public class Minority{
 				e.printStackTrace();
 			}
 			server.connect.add( con );
-			System.out.println(i + " players connected.");
+			System.out.println( (i+1) + " players connected.");
+		}
+
+		//順にUserとのチャット用Connectionを作る
+		for(int i = 0; i < server.pCount; i++){
+			Connection con = null;
+
+			//順番に接続してもらってaccept()する
+			server.connect.get(i).sendStr("come");
+			try {
+				con = new Connection( server.svSocket.accept(), server);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			server.chatSpeaker.add( con );
+			System.out.println( (i+1) + " players ready to start.");
 		}
 
 		System.out.println("all connection established.");
+
+
 
 		//メインループ
 		while(true){
@@ -134,13 +164,32 @@ public class Minority{
 			}catch (IOException e) {
 				e.printStackTrace();
 			}
-			server.broadcastStr( server.getQueStr() );
+			server.broadcastStr( server.getQueStr(), Connection.DEFAULT );
 
-			//投票の開始
+			//チャットの開始
 			for(Iterator<Connection> it = server.connect.iterator(); it.hasNext();){
 				Connection c = it.next();
-				c.setMode("vote");
+				c.setMode("discuss");
 				c.start();
+			}
+
+			//一分停止した後、チャット終了
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			//終了メッセージを通常のConnectionに送る
+			server.broadcastStr("quit_Chat", Connection.DISCUSS);
+
+			server.joinALLConnection();
+
+			//投票の開始
+			for(int i = 0; i < server.connect.size(); i++){
+				server.connect.set(i, new Connection( server.connect.get(i) ));
+				server.connect.get(i).setMode("vote");
+				server.connect.get(i).start();
 			}
 
 			server.joinALLConnection();
@@ -151,10 +200,10 @@ public class Minority{
 			int winCount = result > 0 ? server.ACount : server.BCount;
 			if( winCount == 0 ) winCount++;
 			int prize = result > 0 ? server.betSum/winCount : server.betSum/winCount;
-			server.broadcastStr( resultStr + prize );
+			server.broadcastStr( resultStr + prize, Connection.DEFAULT);
 
 			//継続判定の開始
-			server.broadcastStr( "" + server.pCount );
+			server.broadcastStr( "" + server.pCount, Connection.DEFAULT);
 
 			for(int i = 0; i < server.connect.size(); i++){
 				server.connect.set(i, new Connection( server.connect.get(i) ));
@@ -169,19 +218,23 @@ public class Minority{
 
 			//残りプレイヤーが2人以下なら終了処理
 			if(server.pCount <= 2){
-				server.broadcastStr("END");
+				server.broadcastStr("END", Connection.DEFAULT);
+				server.broadcastStr("END", Connection.DISCUSS);
 
 				//残ったコネクションをすべて閉じる
 				for(int i = 0; i < server.connect.size(); i++){
 					Connection c = server.connect.get(i);
 					c.close();
 					server.connect.remove(c);
+					c = server.chatSpeaker.get(i);
+					c.close();
+					server.chatSpeaker.remove(c);
 					i--;
 				}
 				System.out.println("end game Server");
 				break;
 			}else{
-				server.broadcastStr("next turn.");
+				server.broadcastStr("next turn.", Connection.DEFAULT);
 			}
 
 			//次のループのための準備
