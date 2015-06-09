@@ -46,7 +46,7 @@ public class User{
         while(true){
             System.out.print("input \"yes\" or \"no\" > ");
             input = scanner.next();
-            if( input.equals("yes") || input.equals("no") ) continue;
+            if( !input.equals("yes") || !input.equals("no") ) continue;
             choice = input.equals("yes") ? true : false;
             break;
         }
