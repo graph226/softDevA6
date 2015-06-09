@@ -2,7 +2,7 @@ import java.util.Scanner;
 
 //プレイヤーを表すクラス
 public class User{
-    private String name;    //プレイヤー名
+    public String name;    //プレイヤー名
     private int money;      //所持金
     private int bet = 0;    //掛け金。結果の受け取りの際には獲得金額
     private boolean choice; //yesを選んだらtrue
