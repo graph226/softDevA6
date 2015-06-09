@@ -2,11 +2,12 @@ import java.util.Scanner;
 
 //プレイヤーを表すクラス
 public class User{
-    public String name;    //プレイヤー名
-    public int money;      //所持金
-    public int bet = 0;    //掛け金。結果の受け取りの際には獲得金額
-    public boolean choice; //yesを選んだらtrue
-    public Connection connect;
+    public String name;             //プレイヤー名
+    public int money;               //所持金
+    public int bet = 0;             //掛け金。結果の受け取りの際には獲得金額
+    public boolean choice;          //yesを選んだらtrue
+    public Connection connect;      //汎用ソケット
+    public Connection chatlistener; //チャット用の受信ソケット
     public Scanner scanner;
     static final byte WON  = 1 << 0;
     static final byte DRAW = 1 << 1;
@@ -16,6 +17,14 @@ public class User{
         this.money = money;
         connect = new Connection(host_name, name, this);
         scanner = new Scanner(System.in);
+
+        //サーバーから文字列を受け取ったらチャット用Connectionを作る
+        connect.receiveStr();
+        chatlistener = new Connection(host_name, name, this);
+
+        //チャット用のソケットは常に開いておく
+        chatlistener.setMode("listener");
+        chatlistener.start();
     }
 
     //ユーザー名のgetter
@@ -34,10 +43,13 @@ public class User{
         boolean choice;
         String input;
 
-        System.out.print("input \"yes\" or \"no\" > ");
-        input = scanner.next();
-        choice = input.equals("yes") ? true : false;
-
+        while(true){
+            System.out.print("input \"yes\" or \"no\" > ");
+            input = scanner.next();
+            if( input.equals("yes") || input.equals("no") ) continue;
+            choice = input.equals("yes") ? true : false;
+            break;
+        }
 
         while(true){
             System.out.print("input your bet > ");
@@ -105,6 +117,7 @@ public class User{
 
     //ゲームの終了処理
     public void endGame(){
+        chatlistener.close();
         connect.close();
         scanner.close();
     }
@@ -126,6 +139,10 @@ public class User{
 
         user = new User(name, 1000, host_name);
 
+
+
+
+
         System.out.println("you have $"+ user.money +".");
 
         //メインループ
@@ -133,7 +150,19 @@ public class User{
             //問題の受け取り
             System.out.println( user.connect.receiveStr() );
 
+            //チャット開始
+            Connection.isChatMode = true;
+            user.connect.setMode("discuss");
+            user.connect.start();
+
+            try {
+                user.connect.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             //投票処理
+            user.connect = new Connection(user.connect);
             user.connect.setMode("vote");
             user.connect.start();
             try {
@@ -173,6 +202,11 @@ public class User{
             //途中敗退の処理
             if(user.money <= 0){
                 System.out.println("Game Over...");
+                try {
+                    user.chatlistener.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             }
 
@@ -188,6 +222,7 @@ public class User{
 
             user.connect = new Connection(user.connect);
         }
+
 
         scanner.close();
         user.endGame();
