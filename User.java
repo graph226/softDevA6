@@ -3,11 +3,11 @@ import java.util.Scanner;
 //プレイヤーを表すクラス
 public class User{
     public String name;    //プレイヤー名
-    private int money;      //所持金
-    private int bet = 0;    //掛け金。結果の受け取りの際には獲得金額
-    private boolean choice; //yesを選んだらtrue
-    private Connection connect;
-    private Scanner scanner;
+    public int money;      //所持金
+    public int bet = 0;    //掛け金。結果の受け取りの際には獲得金額
+    public boolean choice; //yesを選んだらtrue
+    public Connection connect;
+    public Scanner scanner;
     static final byte WON  = 1 << 0;
     static final byte DRAW = 1 << 1;
 
