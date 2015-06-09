@@ -35,7 +35,7 @@ class UserGui extends JFrame {
 		JButton button1 = new JButton("入力");
 		button1.addActionListener(
 			new ActionListener(){
-				String name;
+				String name;		//宣言の仕方を変更
 				String host_name;
 				User user;
 				public void actionPerformed(ActionEvent event){
