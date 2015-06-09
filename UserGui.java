@@ -1,30 +1,31 @@
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.JTextPane;
+import javax.swing.JTextArea;
+import java.awt.Container;
+import java.awt.BorderLayout;
 
-class PrefFrame extends Frame {
+class UserGui extends JFrame{
+  public static void main(String args[]){
+    UserGui frame = new UserGui("少数欠ゲーム");
+    frame.setVisible(true);
+  }
 
-	public PrefFrame(String title) {
-		//Frame's title
-		setTitle(title);
+  UserGui(String title){	//コンストラクタ
+    setTitle(title);
+    setBounds(100, 100, 300, 250);
+		//閉じたときの動作
+    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		//When closing window...
-		addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
-				System.exit(0);
-			}
-		});
+    JPanel p = new JPanel();
 
-	}
+    JLabel label1 = new JLabel();
+		label1.setText("<html>Welcome!<br>Tell me your name!");
+
+    p.add(label1);
+
+    Container contentPane = getContentPane();
+    contentPane.add(p, BorderLayout.CENTER);
+  }
 }
-
-public class UserGui {
-
-	public static void main(String args[]){
-		PrefFrame frm = new PrefFrame("少数欠ゲーム");
-		frm.setLocation(300, 200);
-		frm.setSize(250, 350);
-		frm.setBackground(Color.LIGHT_GRAY);
-		frm.setVisible(true);
-	}
-}
-
