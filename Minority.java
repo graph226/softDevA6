@@ -175,7 +175,7 @@ public class Minority{
 
 			//一分停止した後、チャット終了
 			try {
-				Thread.sleep(10000);
+				Thread.sleep(30000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
